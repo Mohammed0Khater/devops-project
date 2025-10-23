@@ -1,4 +1,8 @@
 # terraform/main.tf
+variable "image_tag" {
+  description = "The Docker image tag to deploy."
+  type        = string
+}
 
 terraform {
   required_providers {
