@@ -1,7 +1,14 @@
 # terraform/main.tf
+variable "minikube_registry_url" {
+  description = "The URL of the Minikube internal registry."
+  type        = string
+}
+
+
 variable "image_tag" {
   description = "The Docker image tag to deploy."
   type        = string
+
 }
 
 terraform {
@@ -52,7 +59,7 @@ resource "kubernetes_deployment" "app_deployment" {
 
       spec {
         container {
-          image = "devops-app:1.0" # We will update this later
+          image = "${var.minikube_registry_url}/devops-app:${var.image_tag}" # We will update this later
           name  = "devops-app-container"
 
           port {
