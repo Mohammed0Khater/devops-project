@@ -1,4 +1,4 @@
-name: Build and Deploy to Minikube
+name: Build and Package Docker Image
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build-package:
     runs-on: ubuntu-latest
 
     steps:
@@ -16,45 +16,23 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v2
 
-    - name: Build and push Docker image
+    - name: Build Docker Image
       uses: docker/build-push-action@v4
       with:
         context: .
-        push: true
-        tags: ${{ secrets.MINIKUBE_REGISTRY_URL }}/devops-app:${{ github.sha }}
+        tags: devops-app:${{ github.sha }}
         platforms: linux/amd64
+        load: true # This loads the image into the runner's Docker daemon
+        push: false # We are not pushing to a registry
 
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform
-
-# ... (previous steps) ...
-
-    - name: Setup Terraform
-      uses: hashicorp/setup-terraform@v2
-
-    - name: Prepare kubeconfig
+    - name: Save Docker Image to File
       run: |
-        mkdir -p /home/runner/.kube
-        echo "${{ secrets.KUBE_CONFIG }}" > /home/runner/.kube/config
+        mkdir -p image-artifact
+        docker save devops-app:${{ github.sha }} -o image-artifact/devops-app.tar
 
-    - name: Terraform Init
-      run: terraform init
-      working-directory: ./terraform
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -var="image_tag=${{ github.sha }}" -var="minikube_registry_url=${{ secrets.MINIKUBE_REGISTRY_URL }}"
-      working-directory: ./terraform
-      env:
-        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
-
-# ... (rest of the file) ...
-
-    - name: Terraform Apply
-      run: terraform apply -auto-approve -var="image_tag=${{ github.sha }}" -var="minikube_registry_url=${{ secrets.MINIKUBE_REGISTRY_URL }}"
-      working-directory: ./terraform
-      env:
-        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+    - name: Upload Image Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: devops-app-image
+        path: image-artifact/
+        retention-days: 1
