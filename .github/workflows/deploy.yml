@@ -31,6 +31,28 @@ jobs:
       run: terraform init
       working-directory: ./terraform
 
+# ... (previous steps) ...
+
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v2
+
+    - name: Prepare kubeconfig
+      run: |
+        mkdir -p /home/runner/.kube
+        echo "${{ secrets.KUBE_CONFIG }}" > /home/runner/.kube/config
+
+    - name: Terraform Init
+      run: terraform init
+      working-directory: ./terraform
+
+    - name: Terraform Apply
+      run: terraform apply -auto-approve -var="image_tag=${{ github.sha }}" -var="minikube_registry_url=${{ secrets.MINIKUBE_REGISTRY_URL }}"
+      working-directory: ./terraform
+      env:
+        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+
+# ... (rest of the file) ...
+
     - name: Terraform Apply
       run: terraform apply -auto-approve -var="image_tag=${{ github.sha }}" -var="minikube_registry_url=${{ secrets.MINIKUBE_REGISTRY_URL }}"
       working-directory: ./terraform
