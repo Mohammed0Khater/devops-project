@@ -1,0 +1,18 @@
+# Ignore Terraform cache and provider binaries
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+
+# Ignore downloaded binaries
+kubectl
+minikube-linux-amd64
+openshift-client-linux.tar.gz
+
+# Ignore Python cache
+__pycache__/
+*.pyc
+
+# Ignore common OS files
+.DS_Store
+Thumbs.db
