@@ -1,4 +1,5 @@
-name: Build and Deploy to Minikube
+# .github/workflows/ci-cd.yml
+name: Build and Deploy to OpenShift
 
 on:
   push:
@@ -7,7 +8,7 @@ on:
 
 jobs:
   build-and-deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # This runs in a GitHub-hosted VM
 
     steps:
     - name: Checkout code
@@ -22,7 +23,9 @@ jobs:
         context: .
         push: true
         tags: ${{ secrets.MINIKUBE_REGISTRY_URL }}/devops-app:${{ github.sha }}
+        # Build for the linux/amd64 platform to match the cluster
         platforms: linux/amd64
+        
 
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v2
